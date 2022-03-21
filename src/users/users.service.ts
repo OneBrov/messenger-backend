@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './users.entity';
 import { JwtService } from '@nestjs/jwt';
+import { FilesService } from 'src/files/files.service';
 
 export interface UserDto {
   id: number;
@@ -24,6 +25,7 @@ export interface RegistrationUserDto {
   phone: string;
   bio: string;
   password: string;
+  image: Express.Multer.File;
 }
 
 export interface AuthDto {
@@ -43,6 +45,7 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    private filesService: FilesService,
   ) {}
 
   //Функция для регистрации польтзователя в базе
@@ -55,6 +58,7 @@ export class UsersService {
       throw new ConflictException('User already exists');
     }
     const hashPassword = await bcrypt.hash(dto.password, 3);
+    const image = await this.filesService.createImage(dto.image);
     try {
       const user = await this.usersRepository.insert({
         tag: dto.tag,
@@ -62,7 +66,10 @@ export class UsersService {
         phone: dto.phone,
         bio: dto.bio,
         password: hashPassword,
+        image,
       });
+
+
       //Структура jwt токена
       const userPayload: myJWT = {
         id: user.generatedMaps[0].id, //Ид пользователя, полученый после создания в БД

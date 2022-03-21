@@ -40,22 +40,38 @@ export class MessagesService {
   }
 
   async getDialogMessages(userId: number, companionId: number) {
-    const dialogMessages = await this.messagesRepository
-      .createQueryBuilder('message')
-      .leftJoinAndSelect('message.from', 'from')
-      .leftJoinAndSelect('message.to', 'user')
-      .leftJoinAndSelect('message.image', 'image')
-      .leftJoinAndSelect('message.file', 'file')
-      .where('message.from = :userId and message.to = :companionId', {
-        userId,
-        companionId,
-      })
-      .orWhere('message.from = :companionId and message.to = :userId', {
-        companionId,
-        userId,
-      })
-      .orderBy('message.sendingDate')
-      .getMany();
+    // const dialogMessages = await this.messagesRepository
+    //   .createQueryBuilder('message')
+    //   .leftJoinAndSelect('message.from', 'from')
+    //   .leftJoinAndSelect('message.to', 'user')
+    //   .leftJoinAndSelect('message.image', 'image')
+    //   .leftJoinAndSelect('message.file', 'file')
+
+    //   .where('message.from = :userId and message.to = :companionId', {
+    //     userId,
+    //     companionId,
+    //   })
+    //   .orWhere('message.from = :companionId and message.to = :userId', {
+    //     companionId,
+    //     userId,
+    //   })
+    //   .orderBy('message.sendingDate')
+    //   .getMany();
+
+    const dialogMessages = await this.messagesRepository.find({
+      relations: ['to', 'from', 'image', 'file', 'to.image'],
+      where: [
+        {
+          to: { id: userId },
+          from: { id: companionId },
+        },
+        {
+          to: { id: companionId },
+          from: { id: userId },
+        },
+      ],
+      order: { sendingDate: 'DESC' },
+    });
 
     console.log(dialogMessages);
 

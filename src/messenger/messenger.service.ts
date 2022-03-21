@@ -7,6 +7,7 @@ import { MessagesService } from 'src/messages/messages.service';
 import { DialogsService } from 'src/dialogs/dialogs.service';
 import { FilesService } from 'src/files/files.service';
 import { User } from 'src/users/users.entity';
+import { WSClient } from './messenger.gateway';
 
 @Injectable()
 export class MessengerService {
@@ -27,7 +28,7 @@ export class MessengerService {
     return user;
   }
 
-  async getContacts(userId: number) {
+  async getContacts(userId: number, clients: WSClient[]) {
     const contacts = await this.dialogsService.getAllDialogs(userId);
     const dialogsData = await Promise.all(
       contacts.map(async ({ user, companion, lastReadMessageDate }) => {
@@ -40,10 +41,12 @@ export class MessengerService {
           companion.id,
           lastReadMessageDate,
         );
+        const isOnline = clients.find((c) => c.userId === companion.id);
         return {
           companion,
           lastMessage,
           unreadCount,
+          isOnline,
         };
       }),
     );
@@ -60,5 +63,21 @@ export class MessengerService {
       userId,
       companionId,
     );
+  }
+
+  async createDialog(userId: number, companionId: number) {
+    return await this.dialogsService.createDialog(userId, companionId);
+  }
+
+  async createMessage(userId: number, companionId: number, message: string) {
+    return await this.messagesService.createMessage({
+      toId: companionId,
+      fromId: userId,
+      text: message,
+    });
+  }
+
+  getUserIdBySocketId(clients: WSClient[], socketId: string) {
+    return clients.find((c) => c.socketId === socketId)?.userId;
   }
 }

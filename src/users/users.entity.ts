@@ -1,5 +1,12 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { File } from 'src/files/files.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -20,6 +27,9 @@ export class User {
 
   @Column()
   password: string;
+
+  @ManyToOne(() => File, (image) => image.id, { nullable: true })
+  image: File;
 
   // @OneToMany(() => User, (user) => user.id)
   // userDialogs: User[];
