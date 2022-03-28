@@ -39,6 +39,8 @@ export class MessengerGateway implements OnGatewayConnection {
         .emit('receive_become_online', { userId: user.id });
     });
     this.clients.push({ socketId: socket.id, userId: user.id });
+    console.log(`user ${user.tag} connected`);
+    
   }
 
   async handleDisconnect(socket: Socket) {
