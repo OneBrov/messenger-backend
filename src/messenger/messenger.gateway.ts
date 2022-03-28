@@ -25,11 +25,38 @@ export class MessengerGateway implements OnGatewayConnection {
 
   async handleConnection(socket: Socket) {
     const user = await this.messengerService.getUserFromSocket(socket);
-
+    const onlineContactIds = await this.messengerService.getOnlineContacts(
+      user.id,
+      this.clients,
+    );
+    onlineContactIds.forEach((contactId) => {
+      const socketId = this.messengerService.getSocketIdByUserId(
+        this.clients,
+        contactId,
+      );
+      this.server
+        .to(socketId)
+        .emit('receive_become_online', { userId: user.id });
+    });
     this.clients.push({ socketId: socket.id, userId: user.id });
   }
 
   async handleDisconnect(socket: Socket) {
+    const userId = this.messengerService.getUserIdBySocketId(
+      this.clients,
+      socket.id,
+    );
+    const onlineContactIds = await this.messengerService.getOnlineContacts(
+      userId,
+      this.clients,
+    );
+    onlineContactIds.forEach((contactId) => {
+      const socketId = this.messengerService.getSocketIdByUserId(
+        this.clients,
+        contactId,
+      );
+      this.server.to(socketId).emit('receive_become_offline', { userId });
+    });
     this.clients.filter((c) => c.socketId !== socket.id);
   }
 
@@ -89,22 +116,48 @@ export class MessengerGateway implements OnGatewayConnection {
       this.clients,
       client.id,
     );
+
     const message = await this.messengerService.createMessage(
       userId,
       data.companionId,
       data.text,
     );
 
-    //Здесь должна быть реализация отправки сообщения компаньону
-    // client.emit('receive_message', data);
+    const companionSocketId = this.messengerService.getSocketIdByUserId(
+      this.clients,
+      data.companionId,
+    );
+
+    if (companionSocketId) {
+      this.server.to(companionSocketId).emit('receive_message', message);
+    }
   }
 
   @SubscribeMessage('add_contact')
-  listenForContact(
+  async listenForContact(
     @MessageBody() data: { companionId: number },
     @ConnectedSocket() client: Socket,
   ) {
+    const userId = this.messengerService.getUserIdBySocketId(
+      this.clients,
+      client.id,
+    );
 
-    this.server.sockets.emit('receive_new_contact', data);
+    const newContact = await this.messengerService.createDialog(
+      userId,
+      data.companionId,
+    );
+
+    client.emit('receive_new_contact', newContact);
+  }
+
+  @SubscribeMessage('request_users_by_tag')
+  async listenForUsers(
+    @MessageBody() data: { tag: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const users = await this.messengerService.findUsersByTag(data.tag);
+
+    client.emit('receive_users_by_tag', users);
   }
 }

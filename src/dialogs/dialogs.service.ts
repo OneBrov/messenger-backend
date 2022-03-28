@@ -30,8 +30,18 @@ export class DialogsService {
   async createDialog(userId: number, companionId: number) {
     const now = new Date();
 
-    const user = await this.usersRepository.findOne({ id: userId });
-    const companion = await this.usersRepository.findOne({ id: companionId });
+    const user = await this.usersRepository.findOne({
+      relations: ['image'],
+      where: {
+        id: userId,
+      },
+    });
+    const companion = await this.usersRepository.findOne({
+      relations: ['image'],
+      where: {
+        id: companionId,
+      },
+    });
     const myDialog = new UserDialogs();
     myDialog.companion = companion;
     myDialog.user = user;
@@ -42,8 +52,8 @@ export class DialogsService {
     companionDialog.companion = user;
     companionDialog.user = companion;
     companionDialog.lastReadMessageDate = now;
-    await this.userDialogsRepository.save(companionDialog);
+    const dialog = await this.userDialogsRepository.save(companionDialog);
 
-    return user;
+    return dialog;
   }
 }

@@ -54,6 +54,18 @@ export class MessengerService {
     return dialogsData;
   }
 
+  async getOnlineContacts(userId: number, clients: WSClient[]) {
+    const contacts = await this.dialogsService.getAllDialogs(userId);
+    const onlineContacts = contacts.map(({ user, companion }) => {
+      const isOnline = clients.find((c) => c.userId === companion.id);
+      if (isOnline) {
+        return companion.id;
+      }
+    });
+
+    return onlineContacts;
+  }
+
   async getDialogMessages(userId: number, companionId: number) {
     return await this.messagesService.getDialogMessages(userId, companionId);
   }
@@ -79,5 +91,13 @@ export class MessengerService {
 
   getUserIdBySocketId(clients: WSClient[], socketId: string) {
     return clients.find((c) => c.socketId === socketId)?.userId;
+  }
+
+  getSocketIdByUserId(clients: WSClient[], userId: number) {
+    return clients.find((c) => c.userId === userId)?.socketId;
+  }
+
+  async findUsersByTag(tag: string) {
+    return await this.usersService.findUsersByTag(tag);
   }
 }

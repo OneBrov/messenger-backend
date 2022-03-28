@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './users.entity';
 import { JwtService } from '@nestjs/jwt';
@@ -69,7 +69,6 @@ export class UsersService {
         image,
       });
 
-
       //Структура jwt токена
       const userPayload: myJWT = {
         id: user.generatedMaps[0].id, //Ид пользователя, полученый после создания в БД
@@ -110,6 +109,18 @@ export class UsersService {
 
   async getUser(userId: number) {
     return await this.usersRepository.findOne({ id: userId });
+  }
+
+  async findUsersByTag(tag: string) {
+    const users = await this.usersRepository.find({
+      relations: ['image'],
+      where: {
+        tag: Like(`${tag}%`),
+      },
+
+      take: 10,
+    });
+    return users;
   }
 
   async getUserFromAuthenticationToken(token: string) {
