@@ -41,7 +41,7 @@ export class MessengerService {
           companion.id,
           lastReadMessageDate,
         );
-        const isOnline = clients.find((c) => c.userId === companion.id);
+        const isOnline = !!clients.find((c) => c.userId === companion.id);
         return {
           companion,
           lastMessage,
