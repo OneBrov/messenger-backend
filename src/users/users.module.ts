@@ -22,6 +22,6 @@ import { FilesModule } from 'src/files/files.module';
   ],
   providers: [UsersService, UsersStrategy],
   controllers: [UsersController],
-  exports: [UsersModule],
+  exports: [UsersService],
 })
 export class UsersModule {}

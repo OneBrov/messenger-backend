@@ -18,6 +18,6 @@ import { DialogsService } from './dialogs.service';
   ],
   controllers: [DialogsController],
   providers: [DialogsService],
-  exports: [DialogsModule],
+  exports: [DialogsService],
 })
 export class DialogsModule {}

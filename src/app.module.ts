@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FilesModule } from './files/files.module';
 import { MessagesModule } from './messages/messages.module';
+import { MessengerModule } from './messenger/messenger.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     FilesModule,
     MessagesModule,
+    MessengerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
