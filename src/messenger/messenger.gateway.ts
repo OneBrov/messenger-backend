@@ -14,7 +14,7 @@ export interface WSClient {
   userId: number;
 }
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class MessengerGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
